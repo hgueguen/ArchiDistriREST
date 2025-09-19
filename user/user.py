@@ -20,11 +20,13 @@ def write(users):
 def home():
    return "<h1 style='color:blue'>Welcome to the User service!</h1>"
 
+# Récupérer tous les utilisateurs
 @app.route("/users", methods=['GET'])
 def get_users():
    res = make_response(jsonify(users), 200)
    return res
 
+# Récupérer un utilisateur par son ID
 @app.route("/users/<userid>", methods=['GET'])
 def get_user_byid(userid):
    for user in users:
@@ -33,6 +35,7 @@ def get_user_byid(userid):
          return res
    return make_response(jsonify({"error":"User ID not found"}),500)
 
+# Ajouter un utilisateur
 @app.route("/users/<userid>", methods=['POST'])
 def add_user(userid):
    req = request.get_json()
@@ -47,8 +50,15 @@ def add_user(userid):
    res = make_response(jsonify(req),200)
    return res
 
+# Supprimer un utilisateur (seul un admin peut le faire)
 @app.route("/users/<userid>", methods=['DELETE'])
 def delete_user(userid):
+   req = request.get_json()
+   requester_id = req.get("requester_id")
+   # Vérifier si le requester est admin
+   requester = next((u for u in users if str(u["id"]) == str(requester_id)), None)
+   if not requester or not requester.get("admin", False):
+      return make_response(jsonify({"error":"Only admin users can delete users"}),403)
    for user in users:
       if str(user["id"]) == str(userid):
          users.remove(user)
@@ -56,9 +66,16 @@ def delete_user(userid):
          return make_response(jsonify({"message":"User ID {} deleted".format(userid)}),200)
    return make_response(jsonify({"error":"User ID not found"}),500)
 
+# Modifier un utilisateur (seul un admin peut le faire)
 @app.route("/users/<userid>", methods=['PUT'])
 def update_user(userid):
    req = request.get_json()
+
+   requester_id = req.get("requester_id")
+   # Vérifier si le requester est admin
+   requester = next((u for u in users if str(u["id"]) == str(requester_id)), None)
+   if not requester or not requester.get("admin", False):
+      return make_response(jsonify({"error":"Only admin users can update users"}),403)
    for user in users:
       if str(user["id"]) == str(userid):
          user.update(req)
