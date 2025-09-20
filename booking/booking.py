@@ -8,9 +8,16 @@ app = Flask(__name__)
 PORT = 3201
 HOST = '0.0.0.0'
 USER_SERVICE_URL = "http://localhost:3203"
+SCHEDULE_SERVICE_URL = "http://localhost:3202"
 
 with open('{}/databases/bookings.json'.format("."), "r") as jsf:
    bookings = json.load(jsf)["bookings"]
+
+def write(bookings):
+   with open('{}/databases/bookings.json'.format("."), 'w') as f:
+      full = {}
+      full['bookings']=bookings
+      json.dump(full, f)
 
 @app.route("/", methods=['GET'])
 def home():
@@ -56,7 +63,81 @@ def get_booking_by_userid(userid):
    else:
       return make_response(jsonify({"error":"Only admins or the owner can access this resource"}),403)
 
+# Ajouter une réservation ( doit être admin ou le propriétaire de la réservation et le schedule doit exister )
+@app.route("/bookings", methods=['POST'])
+def add_booking():
+   req = request.get_json()
+   userid = req.get("userid")
+   schedule_date = req.get("schedule_date")
+   movieid = req.get("movieid")
+   requester_id = req.get("requester_id")
 
+   # Verification des champs requis
+   if not userid or not schedule_date or not movieid or not requester_id:
+      return make_response(jsonify({"error":"userid, schedule_date, movieid and requester_id are required"}),400)
+   
+   # Récupération des infos du requester
+   user_response = requests.get(f"{USER_SERVICE_URL}/users/{requester_id}")
+
+   # Si celui effectuant la requête n'existe pas
+   if user_response.status_code != 200:
+      return make_response(jsonify({"error":"Requester not found"}),404)
+   
+   # Vérification si le requester est admin ou le propriétaire de la réservation
+   user = user_response.json()
+   is_admin = user.get("admin") == True
+   is_owner = str(requester_id) == str(userid)
+   if not (is_admin or is_owner):
+      return make_response(jsonify({"error":"Only admins or the owner can add a booking"}),403)
+
+   # Verification que la date du schedule existe
+   schedule_response = requests.get(f"{SCHEDULE_SERVICE_URL}/schedule/{schedule_date}")
+   if schedule_response.status_code != 200:
+      return make_response(jsonify({"error":"Schedule date not found"}),404)
+   schedule_data = schedule_response.json()
+   # Verification que le movieid existe dans le schedule de la date donnée
+   movie_ids = [m for m in schedule_data.get("movies", [])]
+   if str(movieid) not in [str(m) for m in movie_ids]:
+      return make_response(jsonify({"error":"Movie ID not found in the schedule for the given date"}),404)
+
+   # S'il n'y a pas de réservation pour cet utilisateur, on en crée une nouvelle
+   booking = next((b for b in bookings if str(b["userid"]) == str(userid)), None)
+   if not booking:
+      new_booking = {
+         "userid": userid,
+         "dates": [
+            {
+               "date": schedule_date,
+               "movies": [movieid]
+            }
+         ]
+      }
+      bookings.append(new_booking)
+      write(bookings)
+      res = make_response(jsonify(new_booking),200)
+      return res
+   # S'il y a déjà une réservation pour cet utilisateur, on ajoute la date et le movieid
+   else:
+      date_entry = next((d for d in booking["dates"] if d["date"] == schedule_date), None)
+      if not date_entry:
+         new_date_entry = {
+            "date": schedule_date,
+            "movies": [movieid]
+         }
+         booking["dates"].append(new_date_entry)
+         write(bookings)
+         res = make_response(jsonify(new_date_entry),200)
+         return res
+      else:
+         # La date existe déjà, on ajoute le movieid si ce n'est pas déjà fait
+         if movieid not in date_entry["movies"]:
+            date_entry["movies"].append(movieid)
+            write(bookings)
+            res = make_response(jsonify(date_entry),200)
+            return res
+         else:
+            return make_response(jsonify({"error":"Booking already exists"}),400)
+   
    
 if __name__ == "__main__":
    print("Server running in port %s"%(PORT))
