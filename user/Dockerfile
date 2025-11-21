@@ -1,16 +1,10 @@
-FROM python
-# can you find a lighter image?
-
+FROM python:3.10-alpine
 WORKDIR /app
 
-# copy the requirements file in the workdir
-RUN
+COPY ../requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+EXPOSE 3203
 
-# install the Python requirements
-RUN
+CMD ["python", "user.py"]
 
-# copy the app files and directories
-RUN
-
-# start user.py when the container is started
-CMD 

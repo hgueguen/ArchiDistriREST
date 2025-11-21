@@ -1,12 +1,17 @@
+import os
 from flask import Flask, request, jsonify, make_response
 import json
 import sys
+from pymongo import MongoClient
 from werkzeug.exceptions import NotFound
 
 app = Flask(__name__)
 
 PORT = 3200
 HOST = '0.0.0.0'
+
+USEMONGO = os.getenv("USE_MONGO", "false").lower() == "true"
+MONGO_URL = os.getenv("MONGO_URL", "mongodb://mongo:27017/archiDistriDB")
 
 with open('{}/databases/movies.json'.format("."), 'r') as jsf:
     movies = json.load(jsf)["movies"]
@@ -30,6 +35,14 @@ def get_json():
 
 @app.route("/movies/<movieid>", methods=['GET'])
 def get_movie_byid(movieid):
+    if USEMONGO:
+        client = MongoClient(MONGO_URL)
+        db = client["archiDistriDB"]
+        movie_collection = db["movies"]
+        movies = list(movie_collection.find({}))
+        for item in movies:
+            item["_id"] = str(item["_id"])
+            
     for movie in movies:
         if str(movie["id"]) == str(movieid):
             res = make_response(jsonify(movie),200)
@@ -39,6 +52,14 @@ def get_movie_byid(movieid):
 @app.route("/moviesbytitle", methods=['GET'])
 def get_movie_bytitle():
     json = ""
+    if USEMONGO:
+        client = MongoClient(MONGO_URL)
+        db = client["archiDistriDB"]
+        movie_collection = db["movies"]
+        movies = list(movie_collection.find({}))
+        for item in movies:
+            item["_id"] = str(item["_id"])
+
     if request.args:
         req = request.args
         for movie in movies:
@@ -54,7 +75,14 @@ def get_movie_bytitle():
 @app.route("/movies/<movieid>", methods=['POST'])
 def add_movie(movieid):
     req = request.get_json()
-
+    if USEMONGO:
+        client = MongoClient(MONGO_URL)
+        db = client["archiDistriDB"]
+        movie_collection = db["movies"]
+        movies = list(movie_collection.find({}))
+        for item in movies:
+            item["_id"] = str(item["_id"])
+    
     for movie in movies:
         if str(movie["id"]) == str(movieid):
             print(movie["id"])
@@ -80,6 +108,15 @@ def update_movie_rating(movieid, rate):
 
 @app.route("/movies/<movieid>", methods=['DELETE'])
 def del_movie(movieid):
+    if USEMONGO:
+        client = MongoClient(MONGO_URL)
+        db = client["archiDistriDB"]
+        movie_collection = db["movies"]
+        movies = list(movie_collection.find({}))
+        for item in movies:
+            item["_id"] = str(item["_id"])
+            movie_collection.delete_one({"_id": item["_id"]})
+
     for movie in movies:
         if str(movie["id"]) == str(movieid):
             movies.remove(movie)
