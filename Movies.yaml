@@ -1,0 +1,196 @@
+type: collection.insomnia.rest/5.0
+name: Movies
+meta:
+  id: wrk_b9ba9776b2604e36b073b7e51760a21b
+  created: 1763720684600
+  modified: 1763720684600
+  description: ""
+collection:
+  - url: http://127.0.0.1:3200/movies/720d006c-3a57-4b6a-b18f-9b713b000000
+    name: Get Movie By Id
+    meta:
+      id: req_a337bec3274d41c492f29e14ca0aa597
+      created: 1758288554267
+      modified: 1763722832340
+      isPrivate: false
+      description: ""
+      sortKey: -1758288554267
+    method: GET
+    parameters:
+      - id: pair_2ebf67521888408c97573b5fe6ec5f51
+        name: ""
+        value: ""
+        description: ""
+        disabled: false
+    headers:
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://127.0.0.1:3200/json
+    name: Get Json Movies
+    meta:
+      id: req_8a160f7db95741dca7450d15f2a08d73
+      created: 1758289003043
+      modified: 1763725483363
+      isPrivate: false
+      description: ""
+      sortKey: -1758289003043
+    method: GET
+    parameters:
+      - id: pair_5a109fac171941c9b4ac103141fc424e
+        name: ""
+        value: ""
+        description: ""
+        disabled: false
+    headers:
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://127.0.0.1:3200/moviesbytitle
+    name: Get Movies By Title
+    meta:
+      id: req_5b43d040a5464629b37da10fb8440015
+      created: 1758289027637
+      modified: 1763720874869
+      isPrivate: false
+      description: ""
+      sortKey: -1758288554167
+    method: GET
+    parameters:
+      - name: title
+        value: The Good Dinosaur
+        disabled: false
+        id: pair_f9784cb7f9ae46a7ad29d59e52ccadbd
+    headers:
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://127.0.0.1:3200
+    name: Get Page Movies
+    meta:
+      id: req_28da7c5cfc374d6ba3a8bb15d1bd2ce7
+      created: 1758289283094
+      modified: 1758289306706
+      isPrivate: false
+      description: ""
+      sortKey: -1758289283094
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://127.0.0.1:3200/movies/720d006c-3a57-4b6a-b18f-9b713b000000
+    name: Post Movie
+    meta:
+      id: req_1d91a7baf69345508cb60a3ce7c7ad9c
+      created: 1758289673827
+      modified: 1763726017868
+      isPrivate: false
+      description: ""
+      sortKey: -1758288778655
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"id": "720d006c-3a57-4b6a-b18f-9b713b000000",
+          "title": "Test",
+          "rating": 1.2,
+          "director": "Someone"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://127.0.0.1:3200/movies/720d006c-3a57-4b6a-b18f-9b713b073f3c/4
+    name: Put Movie Rate
+    meta:
+      id: req_165e7c6dfbd34db8bfb6949fef84cb0e
+      created: 1758289782701
+      modified: 1763721518833
+      isPrivate: false
+      description: ""
+      sortKey: -1758288553967
+    method: PUT
+    headers:
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://127.0.0.1:3200/movies/720d006c-3a57-4b6a-b18f-9b713b000000
+    name: Delete Movie
+    meta:
+      id: req_c6699562298149aeb1cfc3889ce58c64
+      created: 1758290023915
+      modified: 1763722190262
+      isPrivate: false
+      description: ""
+      sortKey: -1758288553867
+    method: DELETE
+    headers:
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_35fc24ec1f374024a33a52652198c3e5
+    created: 1758288554265
+    modified: 1758288554265
+environments:
+  name: Base Environment
+  meta:
+    id: env_a0fdc1d631134c868f70f36b42137f6b
+    created: 1758288554264
+    modified: 1758288554264
+    isPrivate: false

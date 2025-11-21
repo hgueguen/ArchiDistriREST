@@ -1,0 +1,161 @@
+openapi: 3.0.3
+info:
+  title: Movies API
+  description: API pour gérer les films
+  version: 1.0.0
+servers:
+  - url: http://127.0.0.1:3200
+paths:
+  /:
+    get:
+      summary: Page d'accueil
+      responses:
+        '200':
+          description: Message de bienvenue
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /json:
+    get:
+      summary: Récupérer tous les films en JSON
+      responses:
+        '200':
+          description: Liste de tous les films
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Movie'
+
+  /movies/{movieid}:
+    get:
+      summary: Récupérer un film par son ID
+      parameters:
+        - name: movieid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Film trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movie'
+        '500':
+          description: Film non trouvé
+
+    post:
+      summary: Ajouter un nouveau film
+      parameters:
+        - name: movieid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Movie'
+      responses:
+        '200':
+          description: Film ajouté
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '500':
+          description: Film existant
+
+    delete:
+      summary: Supprimer un film par son ID
+      parameters:
+        - name: movieid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Film supprimé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movie'
+        '404':
+          description: Film non trouvé
+
+  /movies/{movieid}/{rate}:
+    put:
+      summary: Mettre à jour la note d'un film
+      parameters:
+        - name: movieid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: rate
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Note mise à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movie'
+        '500':
+          description: Film non trouvé
+
+  /moviesbytitle:
+    get:
+      summary: Récupérer un film par son titre
+      parameters:
+        - name: title
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Film trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movie'
+        '500':
+          description: Film non trouvé
+
+components:
+  schemas:
+    Movie:
+      type: object
+      required:
+        - id
+        - title
+        - rating
+        - director
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        rating:
+          type: number
+          format: float
+        director:
+          type: string
+        _id:
+          type: string
+          description: Identifiant interne MongoDB

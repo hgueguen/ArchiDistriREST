@@ -1,0 +1,156 @@
+type: collection.insomnia.rest/5.0
+name: Bookings
+meta:
+  id: wrk_5575f6d6f3a84d04b5a9568484be09ff
+  created: 1763720401489
+  modified: 1763720401489
+  description: ""
+collection:
+  - url: http://127.0.0.1:3001/
+    name: Home
+    meta:
+      id: req_6f09c5704d324d6fa09c62fd7e6d0565
+      created: 1758288554267
+      modified: 1763725845537
+      isPrivate: false
+      description: ""
+      sortKey: -1758288554267
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://127.0.0.1:3001/bookings
+    name: Get All Bookings (Admin)
+    meta:
+      id: req_2abf9a6ca06c402488bb452d79b59889
+      created: 1758289003043
+      modified: 1763718628422
+      isPrivate: false
+      description: ""
+      sortKey: -1758289003043
+    method: GET
+    parameters:
+      - name: requester_id
+        value: chris_rivers
+    headers:
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://127.0.0.1:3001/bookings/:userid
+    name: Get Bookings By User ID
+    meta:
+      id: req_c5d05ccfafb04b359d6bec56a0ec21de
+      created: 1758289027637
+      modified: 1763718646927
+      isPrivate: false
+      description: ""
+      sortKey: -1758288554167
+    method: GET
+    parameters:
+      - name: requester_id
+        value: chris_rivers
+    headers:
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+    pathParameters:
+      - name: userid
+        value: garret_heaton
+  - url: http://127.0.0.1:3001/bookings
+    name: Add Booking
+    meta:
+      id: req_ac5dffbe8458411c822b9bba491db148
+      created: 1758289673827
+      modified: 1763725634098
+      isPrivate: false
+      description: ""
+      sortKey: -1758288554067
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "userid": "dwight_schrute",
+          "schedule_date": "20151201",
+          "movieid": "7daf7208-be4d-4944-a3ae-c1c2f516f3e6",
+          "requester_id": "dwight_schrute"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://127.0.0.1:3001/bookings/:userid/:schedule_date/:movieid
+    name: Delete Booking
+    meta:
+      id: req_8b65ccfa05424aca85befdae597565d3
+      created: 1758290023915
+      modified: 1763718662271
+      isPrivate: false
+      description: ""
+      sortKey: -1758288553867
+    method: DELETE
+    parameters:
+      - name: requester_id
+        value: dwight_schrute
+    headers:
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+    pathParameters:
+      - name: userid
+        value: dwight_schrute
+      - name: schedule_date
+        value: "20151201"
+      - name: movieid
+        value: 7daf7208-be4d-4944-a3ae-c1c2f516f3e6
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_a44345f798a4455885ab84cbdda7190d
+    created: 1758288554265
+    modified: 1758288554265
+environments:
+  name: Base Environment
+  meta:
+    id: env_51e3c57a83dd4b74bdafbed27e705dec
+    created: 1758288554264
+    modified: 1758288554264
+    isPrivate: false

@@ -1,0 +1,171 @@
+type: collection.insomnia.rest/5.0
+name: Schedule
+meta:
+  id: wrk_7dedfde42153468daf666f7940033391
+  created: 1763720604079
+  modified: 1763720604079
+  description: ""
+collection:
+  - url: http://127.0.0.1:50051/
+    name: Home
+    meta:
+      id: req_af2d93dbbbf444519d3b511a4fd3f37a
+      created: 1758288554267
+      modified: 1763720638767
+      isPrivate: false
+      description: ""
+      sortKey: -1758288554267
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://127.0.0.1:50051/schedule
+    name: Get All Schedule
+    meta:
+      id: req_6b0d3681e10b477ca84d5c7465bfe909
+      created: 1758289003043
+      modified: 1763718202259
+      isPrivate: false
+      description: ""
+      sortKey: -1758289003043
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://127.0.0.1:50051/schedule/:dateRequested
+    name: Get Schedule By Date
+    meta:
+      id: req_5f88f9a3724440b58283754ca6e16d2b
+      created: 1758289027637
+      modified: 1763718206422
+      isPrivate: false
+      description: ""
+      sortKey: -1758288554167
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+    pathParameters:
+      - name: dateRequested
+        value: "20151201"
+  - url: http://127.0.0.1:50051/schedule/movies/:movieid
+    name: Get Schedule By Movie ID
+    meta:
+      id: req_9d900b82b9554c80b599a8da2f2eea2c
+      created: 1758289027637
+      modified: 1763718197384
+      isPrivate: false
+      description: ""
+      sortKey: -1758288554167
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+    pathParameters:
+      - name: movieid
+        value: a8034f44-aee4-44cf-b32c-74cf452aaaae
+  - url: http://127.0.0.1:50051/schedule/:dateRequested
+    name: Add Schedule
+    meta:
+      id: req_67ed47400a1341ec9278026c8c4a8883
+      created: 1758289673827
+      modified: 1763718210237
+      isPrivate: false
+      description: ""
+      sortKey: -1758288554067
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "date": "20151206",
+          "movies": [
+            "720d006c-3a57-4b6a-b18f-9b713b073f3c",
+            "a8034f44-aee4-44cf-b32c-74cf452aaaae"
+          ]
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+    pathParameters:
+      - name: dateRequested
+        value: "20151206"
+  - url: http://127.0.0.1:50051/schedule/:dateRequested
+    name: Delete Schedule
+    meta:
+      id: req_f50d67fd689d4282867d5c72094dd8da
+      created: 1758290023915
+      modified: 1763723065596
+      isPrivate: false
+      description: ""
+      sortKey: -1758288553867
+    method: DELETE
+    headers:
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+    pathParameters:
+      - name: dateRequested
+        value: "20151206"
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_705a7c59a297427ca45c3e55bc9bfc4c
+    created: 1758288554265
+    modified: 1758288554265
+environments:
+  name: Base Environment
+  meta:
+    id: env_2adc31a1f6d94122a378bfb658d2d39a
+    created: 1758288554264
+    modified: 1758288554264
+    isPrivate: false

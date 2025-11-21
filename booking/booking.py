@@ -10,13 +10,13 @@ app = Flask(__name__)
 PORT = 3001
 HOST = '0.0.0.0'
 USER_SERVICE_URL = "http://localhost:3203"
-SCHEDULE_SERVICE_URL = "http://localhost:3002"
+SCHEDULE_SERVICE_URL = "http://localhost:50051"
 USEMONGO = os.getenv("USE_MONGO", "false").lower() == "true"
 MONGO_URL = os.getenv("MONGO_URL", "mongodb://mongo:27017/archiDistriDB")
 
 if USEMONGO:
    USER_SERVICE_URL = "http://user:3203"
-   SCHEDULE_SERVICE_URL = "http://schedule:3002"
+   SCHEDULE_SERVICE_URL = "http://schedule:50051"
    client = MongoClient(MONGO_URL)
    db = client["archiDistriDB"]
    booking_collection = db["bookings"]
@@ -96,136 +96,150 @@ def get_booking_by_userid(userid):
 # Ajouter une réservation ( doit être admin ou le propriétaire de la réservation et le schedule doit exister )
 @app.route("/bookings", methods=['POST'])
 def add_booking():
-   req = request.get_json()
-   userid = req.get("userid")
-   schedule_date = req.get("schedule_date")
-   movieid = req.get("movieid")
-   requester_id = req.get("requester_id")
+    req = request.get_json()
+    userid = req.get("userid")
+    schedule_date = req.get("schedule_date")
+    movieid = req.get("movieid")
+    requester_id = req.get("requester_id")
 
-   if USEMONGO:
-      bookings = list(booking_collection.find({}))
-      for item in bookings:
-         item["_id"] = str(item["_id"])
+    if not userid or not schedule_date or not movieid or not requester_id:
+        return make_response(jsonify({"error": "userid, schedule_date, movieid and requester_id are required"}), 400)
 
-   # Verification des champs requis
-   if not userid or not schedule_date or not movieid or not requester_id:
-      return make_response(jsonify({"error":"userid, schedule_date, movieid and requester_id are required"}),400)
-   
-   # Récupération des infos du requester
-   user_response = requests.get(f"{USER_SERVICE_URL}/users/{requester_id}")
+    user_response = requests.get(f"{USER_SERVICE_URL}/users/{requester_id}")
+    if user_response.status_code != 200:
+        return make_response(jsonify({"error": "Requester not found"}), 404)
 
-   # Si celui effectuant la requête n'existe pas
-   if user_response.status_code != 200:
-      return make_response(jsonify({"error":"Requester not found"}),404)
-   
-   # Vérification si le requester est admin ou le propriétaire de la réservation
-   user = user_response.json()
-   is_admin = user.get("admin") == True
-   is_owner = str(requester_id) == str(userid)
-   if not (is_admin or is_owner):
-      return make_response(jsonify({"error":"Only admins or the owner can add a booking"}),403)
+    user = user_response.json()
+    is_admin = user.get("admin") is True
+    is_owner = str(requester_id) == str(userid)
+    if not (is_admin or is_owner):
+        return make_response(jsonify({"error": "Only admins or the owner can add a booking"}), 403)
 
-   # Verification que la date du schedule existe
-   schedule_response = requests.get(f"{SCHEDULE_SERVICE_URL}/schedule/{schedule_date}")
-   if schedule_response.status_code != 200:
-      return make_response(jsonify({"error":"Schedule date not found"}),404)
-   schedule_data = schedule_response.json()
-   # Verification que le movieid existe dans le schedule de la date donnée
-   movie_ids = [m for m in schedule_data.get("movies", [])]
-   if str(movieid) not in [str(m) for m in movie_ids]:
-      return make_response(jsonify({"error":"Movie ID not found in the schedule for the given date"}),404)
+    schedule_response = requests.get(f"{SCHEDULE_SERVICE_URL}/schedule/{schedule_date}")
+    if schedule_response.status_code != 200:
+        return make_response(jsonify({"error": "Schedule date not found"}), 404)
 
-   # S'il n'y a pas de réservation pour cet utilisateur, on en crée une nouvelle
-   booking = next((b for b in bookings if str(b["userid"]) == str(userid)), None)
-   if not booking:
-      new_booking = {
-         "userid": userid,
-         "dates": [
-            {
-               "date": schedule_date,
-               "movies": [movieid]
-            }
-         ]
-      }
-      bookings.append(new_booking)
-      write(bookings)
-      res = make_response(jsonify(new_booking),200)
-      return res
-   # S'il y a déjà une réservation pour cet utilisateur, on ajoute la date et le movieid
-   else:
-      date_entry = next((d for d in booking["dates"] if d["date"] == schedule_date), None)
-      if not date_entry:
-         new_date_entry = {
-            "date": schedule_date,
-            "movies": [movieid]
-         }
-         booking["dates"].append(new_date_entry)
-         write(bookings)
-         res = make_response(jsonify(new_date_entry),200)
-         return res
-      else:
-         # La date existe déjà, on ajoute le movieid si ce n'est pas déjà fait
-         if movieid not in date_entry["movies"]:
-            date_entry["movies"].append(movieid)
-            write(bookings)
-            res = make_response(jsonify(date_entry),200)
-            return res
-         else:
-            return make_response(jsonify({"error":"Booking already exists"}),400)
-         
+    schedule_data = schedule_response.json()
+    movie_ids = schedule_data.get("movies", [])
+    if str(movieid) not in [str(m) for m in movie_ids]:
+        return make_response(jsonify({"error": "Movie ID not found in the schedule for the given date"}), 404)
 
-# suppréssion
+    if USEMONGO:
+        booking_collection = db["bookings"]
+        booking = booking_collection.find_one({"userid": userid})
+        if not booking:
+            new_booking = {"userid": userid, "dates": [{"date": schedule_date, "movies": [movieid]}]}
+            booking_collection.insert_one(new_booking)
+            inserted = booking_collection.find_one({"userid": userid})
+            inserted["_id"] = str(inserted["_id"])
+            return make_response(jsonify(inserted), 200)
+        else:
+            dates = booking.get("dates", [])
+            date_entry = next((d for d in dates if d["date"] == schedule_date), None)
+            if not date_entry:
+                new_date_entry = {"date": schedule_date, "movies": [movieid]}
+                dates.append(new_date_entry)
+            else:
+                if movieid not in date_entry["movies"]:
+                    date_entry["movies"].append(movieid)
+                else:
+                    return make_response(jsonify({"error": "Booking already exists"}), 400)
+            booking_collection.update_one({"userid": userid}, {"$set": {"dates": dates}})
+            updated = booking_collection.find_one({"userid": userid})
+            updated["_id"] = str(updated["_id"])
+            return make_response(jsonify(updated), 200)
+    else:
+        with open("./data/bookings.json", "r") as f:
+            bookings_data = json.load(f)["bookings"]
+
+        booking = next((b for b in bookings_data if str(b["userid"]) == str(userid)), None)
+        if not booking:
+            new_booking = {"userid": userid, "dates": [{"date": schedule_date, "movies": [movieid]}]}
+            bookings_data.append(new_booking)
+            with open("./data/bookings.json", "w") as f:
+                json.dump({"bookings": bookings_data}, f)
+            return make_response(jsonify(new_booking), 200)
+        else:
+            dates = booking.get("dates", [])
+            date_entry = next((d for d in dates if d["date"] == schedule_date), None)
+            if not date_entry:
+                new_date_entry = {"date": schedule_date, "movies": [movieid]}
+                dates.append(new_date_entry)
+            else:
+                if movieid not in date_entry["movies"]:
+                    date_entry["movies"].append(movieid)
+                else:
+                    return make_response(jsonify({"error": "Booking already exists"}), 400)
+            booking["dates"] = dates
+            with open("./data/bookings.json", "w") as f:
+                json.dump({"bookings": bookings_data}, f)
+            return make_response(jsonify(date_entry if date_entry else new_date_entry), 200)
+
+      
+
 @app.route("/bookings/<userid>/<schedule_date>/<movieid>", methods=['DELETE'])
 def delete_booking(userid, schedule_date, movieid):
-   if USEMONGO:
-      bookings = list(booking_collection.find({}))
-      for item in bookings:
-         item["_id"] = str(item["_id"])
-   
-      
-   requester_id = request.args.get('requester_id')
-   if not requester_id:
-      return make_response(jsonify({"error": "requester_id is required"}), 400)
+    requester_id = request.args.get('requester_id')
+    if not requester_id:
+        return make_response(jsonify({"error": "requester_id is required"}), 400)
 
-   # Récupération des infos du requester
-   user_response = requests.get(f"{USER_SERVICE_URL}/users/{requester_id}")
-   if user_response.status_code != 200:
-      return make_response(jsonify({"error": "Requester not found"}), 404)
+    user_response = requests.get(f"{USER_SERVICE_URL}/users/{requester_id}")
+    if user_response.status_code != 200:
+        return make_response(jsonify({"error": "Requester not found"}), 404)
 
-   user = user_response.json()
-   is_admin = user.get("admin") == True
-   is_owner = str(requester_id) == str(userid)
+    user = user_response.json()
+    is_admin = user.get("admin") is True
+    is_owner = str(requester_id) == str(userid)
+    if not (is_admin or is_owner):
+        return make_response(jsonify({"error": "Only admins or the owner can delete a booking"}), 403)
 
-   if not (is_admin or is_owner):
-      return make_response(jsonify({"error": "Only admins or the owner can delete a booking"}), 403)
+    if USEMONGO:
+        booking_collection = db["bookings"]
+        booking = booking_collection.find_one({"userid": userid})
+        if not booking:
+            return make_response(jsonify({"error": "Booking not found for this user"}), 404)
 
-   # Recherche de la réservation de l'utilisateur
-   booking = next((b for b in bookings if str(b["userid"]) == str(userid)), None)
-   if not booking:
-      return make_response(jsonify({"error": "Booking not found for this user"}), 404)
+        date_entry = next((d for d in booking.get("dates", []) if d["date"] == schedule_date), None)
+        if not date_entry:
+            return make_response(jsonify({"error": "Schedule date not found in user bookings"}), 404)
 
-   # Recherche de la date dans les réservations de l'utilisateur
-   date_entry = next((d for d in booking["dates"] if d["date"] == schedule_date), None)
-   if not date_entry:
-      return make_response(jsonify({"error": "Schedule date not found in user bookings"}), 404)
+        if str(movieid) not in [str(m) for m in date_entry["movies"]]:
+            return make_response(jsonify({"error": "Movie ID not found in the booking for the given date"}), 404)
 
-   # Recherche du movieid dans la liste des films pour cette date
-   if str(movieid) not in [str(m) for m in date_entry["movies"]]:
-      return make_response(jsonify({"error": "Movie ID not found in the booking for the given date"}), 404)
+        date_entry["movies"].remove(movieid)
+        if not date_entry["movies"]:
+            booking["dates"].remove(date_entry)
+        if not booking["dates"]:
+            booking_collection.delete_one({"userid": userid})
+            return make_response(jsonify({"message": "Booking deleted successfully"}), 200)
+        else:
+            booking_collection.update_one({"userid": userid}, {"$set": {"dates": booking["dates"]}})
+            return make_response(jsonify({"message": "Booking deleted successfully"}), 200)
+    else:
+        with open("./data/bookings.json", "r") as f:
+            bookings_data = json.load(f)["bookings"]
 
-   # Suppression du movieid de la liste
-   date_entry["movies"].remove(movieid)
+        booking = next((b for b in bookings_data if str(b["userid"]) == str(userid)), None)
+        if not booking:
+            return make_response(jsonify({"error": "Booking not found for this user"}), 404)
 
-   # Si la liste des films pour cette date est vide, on supprime la date
-   if not date_entry["movies"]:
-      booking["dates"].remove(date_entry)
+        date_entry = next((d for d in booking.get("dates", []) if d["date"] == schedule_date), None)
+        if not date_entry:
+            return make_response(jsonify({"error": "Schedule date not found in user bookings"}), 404)
 
-   # Si la liste des dates est vide, on supprime la réservation de l'utilisateur
-   if not booking["dates"]:
-      bookings.remove(booking)
+        if str(movieid) not in [str(m) for m in date_entry["movies"]]:
+            return make_response(jsonify({"error": "Movie ID not found in the booking for the given date"}), 404)
 
-   write(bookings)
-   return make_response(jsonify({"message": "Booking deleted successfully"}), 200)
+        date_entry["movies"].remove(movieid)
+        if not date_entry["movies"]:
+            booking["dates"].remove(date_entry)
+        if not booking["dates"]:
+            bookings_data.remove(booking)
+
+        with open("./data/bookings.json", "w") as f:
+            json.dump({"bookings": bookings_data}, f)
+
+        return make_response(jsonify({"message": "Booking deleted successfully"}), 200)
 
 
 if __name__ == "__main__":

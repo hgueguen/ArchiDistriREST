@@ -83,36 +83,43 @@ def get_schedule_bymovieid(movieid):
 @app.route("/schedule/<dateRequested>", methods=['POST'])
 def add_schedule(dateRequested):
     req = request.get_json()
-    if USEMONGO:
-        schedule = list(schedule_collection.find({}))
-        for item in schedule:
-            item["_id"] = str(item["_id"])
+    req["date"] = dateRequested
 
-    for time in schedule:
-        if str(time["date"]) == str(dateRequested):
-            print(time["date"])
-            print(dateRequested)
-            return make_response(jsonify({"error":"schedule already exists"}),500)
+    if USEMONGO:
+        exists = schedule_collection.find_one({"date": dateRequested})
+        if exists:
+            return make_response(jsonify({"error": "schedule already exists"}), 500)
+        schedule_collection.insert_one(req)
+        inserted = schedule_collection.find_one({"date": dateRequested})
+        inserted["_id"] = str(inserted["_id"])
+        return make_response(jsonify({"message": "schedule added", "schedule": inserted}), 200)
+
+    exists = next((s for s in schedule if str(s["date"]) == str(dateRequested)), None)
+    if exists:
+        return make_response(jsonify({"error": "schedule already exists"}), 500)
 
     schedule.append(req)
     write(schedule)
-    res = make_response(jsonify({"message":"schedule added"}),200)
-    return res
+    return make_response(jsonify({"message": "schedule added", "schedule": req}), 200)
+
 
 @app.route("/schedule/<dateRequested>", methods=['DELETE'])
 def del_schedule(dateRequested):
     if USEMONGO:
-        schedule = list(schedule_collection.find({}))
-        for item in schedule:
-            item["_id"] = str(item["_id"])
-    for time in schedule:
-        if str(time["date"]) == str(dateRequested):
-            schedule.remove(time)
-            write(schedule)
-            return make_response(jsonify(time),200)
+        to_delete = schedule_collection.find_one({"date": dateRequested})
+        if not to_delete:
+            return make_response(jsonify({"error": "Date requested not found"}), 404)
+        schedule_collection.delete_one({"date": dateRequested})
+        to_delete["_id"] = str(to_delete["_id"])
+        return make_response(jsonify(to_delete), 200)
 
-    res = make_response(jsonify({"error":"movie ID not found"}),500)
-    return res
+    for item in schedule:
+        if str(item["date"]) == str(dateRequested):
+            schedule.remove(item)
+            write(schedule)
+            return make_response(jsonify(item), 200)
+
+    return make_response(jsonify({"error": "Date requested not found"}), 404)
 
 
 if __name__ == "__main__":

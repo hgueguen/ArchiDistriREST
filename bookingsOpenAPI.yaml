@@ -1,0 +1,149 @@
+openapi: 3.0.3
+info:
+  title: Bookings API
+  description: API pour gérer les réservations de films
+  version: 1.0.0
+servers:
+  - url: http://127.0.0.1:3200
+paths:
+  /bookings:
+    get:
+      summary: Récupérer toutes les réservations (admin)
+      parameters:
+        - name: requester_id
+          in: query
+          description: ID de l'utilisateur demandant la liste
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Liste des réservations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Booking'
+        '400':
+          description: Paramètre manquant
+        '403':
+          description: Non autorisé
+    post:
+      summary: Ajouter une réservation
+      requestBody:
+        description: Informations pour la réservation
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userid
+                - schedule_date
+                - movieid
+                - requester_id
+              properties:
+                userid:
+                  type: string
+                schedule_date:
+                  type: string
+                  example: "20251121"
+                movieid:
+                  type: string
+                requester_id:
+                  type: string
+      responses:
+        '200':
+          description: Réservation ajoutée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+        '400':
+          description: Paramètre manquant ou réservation déjà existante
+        '403':
+          description: Non autorisé
+        '404':
+          description: Utilisateur ou planning non trouvé
+  /bookings/{userid}:
+    get:
+      summary: Récupérer les réservations d'un utilisateur
+      parameters:
+        - name: userid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: requester_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Réservations de l'utilisateur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+        '403':
+          description: Non autorisé
+        '404':
+          description: Utilisateur ou réservation non trouvé
+  /bookings/{userid}/{schedule_date}/{movieid}:
+    delete:
+      summary: Supprimer une réservation pour un film à une date donnée
+      parameters:
+        - name: userid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: schedule_date
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: movieid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: requester_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Réservation supprimée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '403':
+          description: Non autorisé
+        '404':
+          description: Réservation, date ou film non trouvé
+components:
+  schemas:
+    Booking:
+      type: object
+      properties:
+        userid:
+          type: string
+        dates:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+              movies:
+                type: array
+                items:
+                  type: string

@@ -1,0 +1,130 @@
+openapi: 3.0.3
+info:
+  title: Users API
+  description: API pour gérer les utilisateurs
+  version: 1.0.0
+servers:
+  - url: http://127.0.0.1:3203
+paths:
+  /:
+    get:
+      summary: Page d'accueil
+      responses:
+        '200':
+          description: Message de bienvenue
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /users:
+    get:
+      summary: Récupérer tous les utilisateurs
+      responses:
+        '200':
+          description: Liste des utilisateurs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+
+  /users/{userid}:
+    get:
+      summary: Récupérer un utilisateur par ID
+      parameters:
+        - name: userid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Utilisateur trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Utilisateur non trouvé
+
+    post:
+      summary: Ajouter un nouvel utilisateur
+      parameters:
+        - name: requester_id
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: Utilisateur ajouté
+        '400':
+          description: Erreur d'ajout
+
+    put:
+      summary: Mettre à jour un utilisateur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/User'
+                - type: object
+                  properties:
+                    requester_id:
+                      type: string
+      responses:
+        '200':
+          description: Utilisateur mis à jour
+        '403':
+          description: Permissions insuffisantes
+
+    delete:
+      summary: Supprimer un utilisateur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                requester_id:
+                  type: string
+                  description: ID de l'utilisateur qui effectue la suppression
+      responses:
+        '200':
+          description: Utilisateur supprimé
+        '403':
+          description: Permissions insuffisantes
+        '404':
+          description: Utilisateur non trouvé
+
+components:
+  schemas:
+    User:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          description: Identifiant de l'utilisateur
+        name:
+          type: string
+          description: Nom de l'utilisateur
+        last_active:
+          type: integer
+          description: Timestamp de dernière activité
+        admin:
+          type: boolean
+          description: Indique si l'utilisateur est administrateur

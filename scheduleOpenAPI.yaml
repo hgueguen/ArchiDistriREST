@@ -1,0 +1,136 @@
+openapi: 3.0.3
+info:
+  title: Schedule API
+  description: API pour gérer les horaires des films
+  version: 1.0.0
+servers:
+  - url: http://127.0.0.1:50051
+paths:
+  /:
+    get:
+      summary: Page d'accueil
+      responses:
+        '200':
+          description: Message de bienvenue
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /schedule:
+    get:
+      summary: Récupérer tous les horaires
+      responses:
+        '200':
+          description: Liste des horaires
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Schedule'
+
+  /schedule/{dateRequested}:
+    get:
+      summary: Récupérer un horaire par date
+      parameters:
+        - name: dateRequested
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Horaire trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schedule'
+        '500':
+          description: Date non trouvée
+
+    post:
+      summary: Ajouter un horaire
+      parameters:
+        - name: dateRequested
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Schedule'
+      responses:
+        '200':
+          description: Horaire ajouté
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '500':
+          description: Horaire existant
+
+    delete:
+      summary: Supprimer un horaire par date
+      parameters:
+        - name: dateRequested
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Horaire supprimé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schedule'
+        '500':
+          description: Date non trouvée
+
+  /schedule/movies/{movieid}:
+    get:
+      summary: Récupérer tous les horaires contenant un film spécifique
+      parameters:
+        - name: movieid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Horaires trouvés
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Schedule'
+        '404':
+          description: Aucun horaire trouvé pour ce film
+
+components:
+  schemas:
+    Schedule:
+      type: object
+      required:
+        - date
+        - movies
+      properties:
+        date:
+          type: string
+          description: Date au format YYYYMMDD
+        movies:
+          type: array
+          items:
+            type: string
+            description: ID du film
+        _id:
+          type: string
+          description: Identifiant interne MongoDB
