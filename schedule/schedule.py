@@ -6,14 +6,14 @@ from pymongo import MongoClient
 
 app = Flask(__name__)
 
-PORT = 3202
+PORT = 50051
 HOST = '0.0.0.0'
 USEMONGO = os.getenv("USE_MONGO", "false").lower() == "true"
 MONGO_URL = os.getenv("MONGO_URL", "mongodb://mongo:27017/archiDistriDB")
 
 
 
-with open('{}/databases/times.json'.format("."), "r") as jsf:
+with open('{}/data/times.json'.format("."), "r") as jsf:
    schedule = json.load(jsf)["schedule"]
 
 @app.route("/", methods=['GET'])
@@ -24,7 +24,7 @@ if USEMONGO:
     db = client["archiDistriDB"]
     schedule_collection = db["schedule"]
     if schedule_collection.count_documents({}) == 0:
-        with open('{}/databases/times.json'.format("."), "r") as jsf:
+        with open('{}/data/times.json'.format("."), "r") as jsf:
             initial_schedule = json.load(jsf)["schedule"]
             schedule_collection.insert_many(initial_schedule)
     schedule = list(schedule_collection.find({}))
@@ -32,7 +32,7 @@ if USEMONGO:
         item["_id"] = str(item["_id"])
 
 def write(schedule):
-    with open('{}/databases/times.json'.format("."), 'w') as f:
+    with open('{}/data/times.json'.format("."), 'w') as f:
         full = {}
         full['schedule']=schedule
         json.dump(full, f)

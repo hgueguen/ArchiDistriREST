@@ -31,7 +31,7 @@ else:
 # Fonction pour écrire dans le fichier JSON
 def write(users):
     if not config.USE_MONGO:
-        with open('./databases/users.json', 'w') as f:
+        with open('./data/users.json', 'w') as f:
             full = {"users": users}
             json.dump(full, f, indent=2)
 

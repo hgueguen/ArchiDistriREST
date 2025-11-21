@@ -13,12 +13,12 @@ HOST = '0.0.0.0'
 USEMONGO = os.getenv("USE_MONGO", "false").lower() == "true"
 MONGO_URL = os.getenv("MONGO_URL", "mongodb://mongo:27017/archiDistriDB")
 
-with open('{}/databases/movies.json'.format("."), 'r') as jsf:
+with open('{}/data/movies.json'.format("."), 'r') as jsf:
     movies = json.load(jsf)["movies"]
     print(movies)
 
 def write(movies):
-    with open('{}/databases/movies.json'.format("."), 'w') as f:
+    with open('{}/data/movies.json'.format("."), 'w') as f:
         full = {}
         full['movies']=movies
         json.dump(full, f)

@@ -3,24 +3,25 @@ import json
 import requests
 from werkzeug.exceptions import NotFound
 from pymongo import MongoClient
+import os
 
 app = Flask(__name__)
 
-PORT = 3201
+PORT = 3001
 HOST = '0.0.0.0'
 USER_SERVICE_URL = "http://localhost:3203"
-SCHEDULE_SERVICE_URL = "http://localhost:3202"
+SCHEDULE_SERVICE_URL = "http://localhost:3002"
 USEMONGO = os.getenv("USE_MONGO", "false").lower() == "true"
 MONGO_URL = os.getenv("MONGO_URL", "mongodb://mongo:27017/archiDistriDB")
 
 if USEMONGO:
    USER_SERVICE_URL = "http://user:3203"
-   SCHEDULE_SERVICE_URL = "http://schedule:3202"
+   SCHEDULE_SERVICE_URL = "http://schedule:3002"
    client = MongoClient(MONGO_URL)
    db = client["archiDistriDB"]
    booking_collection = db["bookings"]
    if booking_collection.count_documents({}) == 0:
-      with open('{}/databases/bookings.json'.format("."), "r") as jsf:
+      with open('{}/data/bookings.json'.format("."), "r") as jsf:
          initial_bookings = json.load(jsf)["bookings"]
          booking_collection.insert_many(initial_bookings)
    bookings = list(booking_collection.find({}))
@@ -28,11 +29,11 @@ if USEMONGO:
       item["_id"] = str(item["_id"])
    
 else:
-   with open('{}/databases/bookings.json'.format("."), "r") as jsf:
+   with open('{}/data/bookings.json'.format("."), "r") as jsf:
       bookings = json.load(jsf)["bookings"]
 
 def write(bookings):
-   with open('{}/databases/bookings.json'.format("."), 'w') as f:
+   with open('{}/data/bookings.json'.format("."), 'w') as f:
       full = {}
       full['bookings']=bookings
       json.dump(full, f)
